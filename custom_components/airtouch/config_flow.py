@@ -15,15 +15,19 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_CONNECTION_MODE,
     CONF_MINOR_VERSION,
     CONF_SPILL_BYPASS,
     CONF_SPILL_ZONES,
     CONF_VERSION,
+    DIRECT_PORT_AT4,
+    DIRECT_PORT_AT5,
     DOMAIN,
     OPTIONS_ALLOW_ZONE_HVAC_MODE_CHANGES,
     OPTIONS_ALLOW_ZONE_HVAC_MODE_CHANGES_DEFAULT,
     OPTIONS_MIN_TARGET_TEMPERATURE_STEP,
     OPTIONS_MIN_TARGET_TEMPERATURE_STEP_DEFAULT,
+    ConnectionMode,
     SpillBypass,
 )
 
@@ -119,12 +123,80 @@ class AirTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_HOST,
                             default=self.context.get(CONF_HOST),
                         ): str,
+                        vol.Required(
+                            CONF_CONNECTION_MODE,
+                            default=self.context.get(
+                                CONF_CONNECTION_MODE, ConnectionMode.DISCOVERY.value
+                            ),
+                        ): selector.SelectSelector(
+                            selector.SelectSelectorConfig(
+                                options=[x.value for x in ConnectionMode],
+                                mode=selector.SelectSelectorMode.DROPDOWN,
+                                translation_key=CONF_CONNECTION_MODE,
+                            )
+                        ),
                     }
                 ),
                 errors=errors,
             )
 
+        connection_mode = ConnectionMode(
+            info.get(CONF_CONNECTION_MODE, ConnectionMode.DISCOVERY.value)
+        )
+        self.context[CONF_CONNECTION_MODE] = connection_mode.value  # type: ignore[literal-required]
+        if connection_mode != ConnectionMode.DISCOVERY:
+            return await self.async_step_direct_connect(
+                info[CONF_HOST], connection_mode
+            )
+
         return await self.async_step_discover_airtouch(info[CONF_HOST])
+
+    async def async_step_direct_connect(
+        self,
+        remote_host: str,
+        connection_mode: ConnectionMode,
+    ) -> "config_entries.ConfigFlowResult":
+        """Connect directly to a known AirTouch console, skipping UDP discovery.
+
+        UDP discovery doesn't work in some network configurations, e.g. when
+        the AirTouch console is on a different subnet/VLAN to Home Assistant
+        and discovery responses cannot be routed back. In this mode the user
+        tells us the model and we open a direct TCP connection to validate
+        the configuration.
+        """
+        self.context[CONF_HOST] = remote_host  # type: ignore[literal-required]
+
+        if connection_mode == ConnectionMode.DIRECT_AT4:
+            model = pyairtouch.AirTouchModel.AIRTOUCH_4
+            port = DIRECT_PORT_AT4
+        else:
+            model = pyairtouch.AirTouchModel.AIRTOUCH_5
+            port = DIRECT_PORT_AT5
+
+        airtouch = pyairtouch.connect(
+            model,
+            remote_host,
+            port,
+            airtouch_id=f"direct-{remote_host}",
+            name=f"{model.value} ({remote_host})",
+        )
+
+        connected = await airtouch.init()
+        if not connected or not airtouch.air_conditioners:
+            await airtouch.shutdown()
+            return await self.async_step_user_host(
+                errors={CONF_HOST: "no_devices_found"}
+            )
+        await airtouch.shutdown()
+
+        await self.async_set_unique_id(airtouch.airtouch_id)
+        self._abort_if_unique_id_configured()
+
+        self.context[_CONTEXT_TITLE] = airtouch.name  # type: ignore[literal-required]
+        self.context[_CONTEXT_AIRTOUCH_API] = airtouch  # type: ignore[literal-required]
+        self.context[_CONTEXT_REMAINING_AIRTOUCHES] = []  # type: ignore[literal-required]
+
+        return await self.async_step_settings()
 
     async def async_step_settings(
         self,
@@ -219,6 +291,9 @@ class AirTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             title=self.context[_CONTEXT_TITLE],  # type: ignore[literal-required]
             data={
                 CONF_HOST: self.context[CONF_HOST],  # type: ignore[literal-required]
+                CONF_CONNECTION_MODE: self.context.get(
+                    CONF_CONNECTION_MODE, ConnectionMode.DISCOVERY.value
+                ),
                 CONF_SPILL_BYPASS: self.context[CONF_SPILL_BYPASS],  # type: ignore[literal-required]
                 CONF_SPILL_ZONES: self.context[CONF_SPILL_ZONES],  # type: ignore[literal-required]
             },

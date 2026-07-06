@@ -18,6 +18,14 @@ CONF_SPILL_BYPASS = "spill_bypass"
 # Only valid if CONF_SPILL_BYPASS == SpillBypass.SPILL
 CONF_SPILL_ZONES = "spill_zones"
 
+# How the integration connects to the AirTouch console.
+# "discovery" (default) uses UDP discovery (broadcast or unicast).
+# The direct modes skip UDP discovery entirely and open a TCP connection to
+# the known console address. This supports networks where the console is on a
+# different subnet/VLAN to Home Assistant and UDP discovery responses cannot
+# be received.
+CONF_CONNECTION_MODE = "connection_mode"
+
 OPTIONS_MIN_TARGET_TEMPERATURE_STEP = "min_target_temperature_step"
 OPTIONS_MIN_TARGET_TEMPERATURE_STEP_DEFAULT = PRECISION_HALVES
 
@@ -31,3 +39,16 @@ class SpillBypass(enum.Enum):
 
     SPILL = "spill"
     BYPASS = "bypass"
+
+
+class ConnectionMode(enum.Enum):
+    """How to connect to the AirTouch console."""
+
+    DISCOVERY = "discovery"
+    DIRECT_AT4 = "direct_at4"
+    DIRECT_AT5 = "direct_at5"
+
+
+# Default TCP ports for direct connections.
+DIRECT_PORT_AT4 = 9004
+DIRECT_PORT_AT5 = 9005

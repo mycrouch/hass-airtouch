@@ -12,9 +12,13 @@ from homeassistant.const import CONF_HOST, Platform
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
+    CONF_CONNECTION_MODE,
     CONF_MINOR_VERSION,
     CONF_VERSION,
+    DIRECT_PORT_AT4,
+    DIRECT_PORT_AT5,
     DOMAIN,
+    ConnectionMode,
 )
 
 if TYPE_CHECKING:
@@ -49,25 +53,49 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # A lock is included to support mutual exclusion between config entries.
     hass.data.setdefault(DOMAIN, {_LOCK_KEY: asyncio.Lock()})
 
-    # Ensure discovery is mutually exlusive across config entries since it needs
-    # to bind to an explicit local port.
-    async with hass.data[DOMAIN][_LOCK_KEY]:
-        discovery_results = await pyairtouch.discover(
-            remote_host=entry.data.get(CONF_HOST)
-        )
-
-    # Filter the API instances to the AirTouch controller that matches this
-    # config entry.
-    airtouch = next(
-        (at for at in discovery_results if entry.unique_id == at.airtouch_id), None
+    connection_mode = ConnectionMode(
+        entry.data.get(CONF_CONNECTION_MODE, ConnectionMode.DISCOVERY.value)
     )
-    if not airtouch:
-        # Couldn't find the AirTouch device.
-        # As a general rule this shouldn't happen because we are using discovery.
-        # However, it might happen if the AirTouch console is offline or the
-        # user configured with unicast discovery and the AirTouch console got a
-        # new IP address.
-        raise ConfigEntryNotReady("AirTouch not detected on network")
+
+    if connection_mode == ConnectionMode.DISCOVERY:
+        # Ensure discovery is mutually exlusive across config entries since it needs
+        # to bind to an explicit local port.
+        async with hass.data[DOMAIN][_LOCK_KEY]:
+            discovery_results = await pyairtouch.discover(
+                remote_host=entry.data.get(CONF_HOST)
+            )
+
+        # Filter the API instances to the AirTouch controller that matches this
+        # config entry.
+        airtouch = next(
+            (at for at in discovery_results if entry.unique_id == at.airtouch_id), None
+        )
+        if not airtouch:
+            # Couldn't find the AirTouch device.
+            # As a general rule this shouldn't happen because we are using discovery.
+            # However, it might happen if the AirTouch console is offline or the
+            # user configured with unicast discovery and the AirTouch console got a
+            # new IP address.
+            raise ConfigEntryNotReady("AirTouch not detected on network")
+    else:
+        # Direct connection mode: skip UDP discovery and connect to the
+        # configured console address over TCP. This supports network
+        # configurations where discovery responses cannot be received, e.g.
+        # when the console is on a different subnet/VLAN to Home Assistant.
+        if connection_mode == ConnectionMode.DIRECT_AT4:
+            model = pyairtouch.AirTouchModel.AIRTOUCH_4
+            port = DIRECT_PORT_AT4
+        else:
+            model = pyairtouch.AirTouchModel.AIRTOUCH_5
+            port = DIRECT_PORT_AT5
+
+        airtouch = pyairtouch.connect(
+            model,
+            entry.data[CONF_HOST],
+            port,
+            airtouch_id=entry.unique_id,
+            name=entry.title,
+        )
 
     if not await airtouch.init():
         await airtouch.shutdown()

@@ -30,7 +30,11 @@
       },
       "user_host": {
         "data": {
-          "host": "Host"
+          "host": "Host",
+          "connection_mode": "Connection method"
+        },
+        "data_description": {
+          "connection_mode": "Use Discovery unless it fails. Direct connection skips UDP discovery and connects straight to the console over TCP — needed when the console is on a different subnet/VLAN to Home Assistant."
         },
         "description": "Enter the host name or IP Address of the AirTouch wall panel.",
         "title": "Set up the AirTouch connection details"
@@ -48,6 +52,13 @@
     }
   },
   "selector": {
+    "connection_mode": {
+      "options": {
+        "discovery": "Discovery (default)",
+        "direct_at4": "Direct connection — AirTouch 4",
+        "direct_at5": "Direct connection — AirTouch 5"
+      }
+    },
     "hvac_mode": {
       "options": {
         "cool": "Cool",
