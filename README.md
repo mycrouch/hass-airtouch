@@ -14,9 +14,9 @@ Supports the AirTouch 4 and AirTouch 5.
 > **This is a fork of [TheNoctambulist/hass-airtouch](https://github.com/TheNoctambulist/hass-airtouch)** that adds a **direct-connection mode**: a *Connection method* selector in the manual setup step (Discovery / Direct — AirTouch 4 / Direct — AirTouch 5). Direct mode skips UDP discovery entirely and opens a TCP connection to a known console address. Use it when the AirTouch console is on a **different subnet/VLAN to Home Assistant** — the console only answers discovery via broadcast, which can't cross subnets, so the standard flow fails with "Failed to connect to AirTouch console" even though the console is reachable. All other functionality is unchanged from upstream.
 
 > [!TIP]
-> **Companion dashboard card:** [mycrouch/airtouch4-card](https://github.com/mycrouch/airtouch4-card) — a Lovelace card styled after the AirTouch console, built to pair with this integration. It uses the damper covers for zone state (works while the AC is off), the spill and battery sensors for per-zone indicators, and `set_hvac_mode_only` so changing mode doesn't power the AC on. Zones are auto-discovered with in-card renaming.
+> **Companion dashboard card:** [mycrouch/airtouch-card](https://github.com/mycrouch/airtouch-card) — a Lovelace card styled after the AirTouch console, built to pair with this integration. It uses the damper covers for zone state (works while the AC is off), the spill and battery sensors for per-zone indicators, and `set_hvac_mode_only` so changing mode doesn't power the AC on. Zones are auto-discovered with in-card renaming.
 >
-> [![AirTouch 4 Card](https://raw.githubusercontent.com/mycrouch/airtouch4-card/main/images/card-heat.png)](https://github.com/mycrouch/airtouch4-card)
+> [![AirTouch 4 Card](https://raw.githubusercontent.com/mycrouch/airtouch-card/main/images/card-heat.png)](https://github.com/mycrouch/airtouch-card)
 
 ![AirTouch](./images/3-console-themes-slider-010-1536x565.webp)
 
