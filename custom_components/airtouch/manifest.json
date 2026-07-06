@@ -5,10 +5,10 @@
     "@thenoctambulist"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/TheNoctambulist/hass-airtouch",
+  "documentation": "https://github.com/mycrouch/hass-airtouch",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/TheNoctambulist/hass-airtouch/issues",
+  "issue_tracker": "https://github.com/mycrouch/hass-airtouch/issues",
   "loggers": [
     "custom_components.airtouch",
     "pyairtouch"
