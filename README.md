@@ -18,7 +18,7 @@ Supports the AirTouch 4 and AirTouch 5.
 >
 > [![AirTouch 4 Card](https://raw.githubusercontent.com/mycrouch/airtouch-card/main/images/card-heat.png)](https://github.com/mycrouch/airtouch-card)
 >
-> Matching dashboard styling: [airtouch-gradient-themes](https://github.com/mycrouch/airtouch-gradient-themes) (20 gradient theme variants). Also themed: [ecovacs-vacuum-card](https://github.com/mycrouch/ecovacs-vacuum-card).
+> Matching dashboard styling: [gradient-themes](https://github.com/mycrouch/gradient-themes) (gradient dashboard themes, dark + pastel). Also themed: [ecovacs-vacuum-card](https://github.com/mycrouch/ecovacs-vacuum-card).
 
 ![AirTouch](./images/3-console-themes-slider-010-1536x565.webp)
 
