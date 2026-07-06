@@ -17,6 +17,8 @@ Supports the AirTouch 4 and AirTouch 5.
 > **Companion dashboard card:** [mycrouch/airtouch-card](https://github.com/mycrouch/airtouch-card) — a Lovelace card styled after the AirTouch console, built to pair with this integration. It uses the damper covers for zone state (works while the AC is off), the spill and battery sensors for per-zone indicators, and `set_hvac_mode_only` so changing mode doesn't power the AC on. Zones are auto-discovered with in-card renaming.
 >
 > [![AirTouch 4 Card](https://raw.githubusercontent.com/mycrouch/airtouch-card/main/images/card-heat.png)](https://github.com/mycrouch/airtouch-card)
+>
+> Matching dashboard styling: [airtouch-gradient-themes](https://github.com/mycrouch/airtouch-gradient-themes) (20 gradient theme variants). Also themed: [ecovacs-vacuum-card](https://github.com/mycrouch/ecovacs-vacuum-card).
 
 ![AirTouch](./images/3-console-themes-slider-010-1536x565.webp)
 
